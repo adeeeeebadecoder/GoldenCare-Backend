@@ -1,10 +1,11 @@
 import nodemailer from "nodemailer";
 
 const sendResetEmail = async (email, token) => {
+  
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
-      user: process.env.EMAIL_USER,
+      user: process.env.EMAIL,
       pass: process.env.EMAIL_PASS,
     },
   });

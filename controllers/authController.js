@@ -127,7 +127,7 @@ const signup = async (req, res) => {
     // Set refresh token in a cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true, // Set to true in production (HTTPS)
+      secure: true, 
       sameSite: "Lax",
     });
 
@@ -166,7 +166,7 @@ const login = async (req, res) => {
     // Set refresh token in cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true, // Set to true in production
+      secure: true, 
       sameSite: "Lax",
     });
 
@@ -221,14 +221,14 @@ const forgotPassword = async (req, res) => {
     // Send email with reset link
     const resetURL = `http://localhost:5173/reset-password/${resetToken}`;
     const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: user.email,
+      from: process.env.EMAIL,
+      to: email,
       subject: "Password Reset Request",
       text: `Click the link to reset your password: ${resetURL}`,
     };
 
     await transporter.sendMail(mailOptions);
-    res.json({ message: "Password reset email sent" });
+    return res.json({ message: "Password reset email sent" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
