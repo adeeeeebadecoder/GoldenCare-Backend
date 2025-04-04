@@ -1,7 +1,7 @@
 const Reminder = require("../models/Reminder");
 const { sendPushNotification } = require("../config/firebase");
-const { sendEmailReminder } = require("../config/firebase-service-account.json");
-const { scheduleReminder } = require("../utils/scheduleReminder");
+// const { sendEmailReminder } = require("../config/firebase");
+// const { scheduleReminder } = require("../utils/scheduleReminder");
 
 const createReminder = async (req, res) => {
   try {

@@ -1,5 +1,4 @@
 require("dotenv").config();
-const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -9,6 +8,9 @@ const appointmentRoutes = require("./routes/appointmentRoutes");
 const clinicRoutes = require("./routes/clinicRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const reminderRoutes = require("./routes/reminderRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes.js");
+const adminRoutes = require("./routes/adminRoutes.js");
+const userRoute =require("./routes/userRoutes.js")
 
 connectDB();
 
@@ -32,6 +34,9 @@ app.use("/api/doctors", doctorRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/clinics", clinicRoutes);
 app.use("/api/reminders", reminderRoutes);
+app.use("/ap/dashboard", dashboardRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/user", userRoute);
 
 app.get("/api/health", (req, res) => res.send("API is running 🚀"));
 

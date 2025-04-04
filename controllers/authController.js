@@ -1,78 +1,3 @@
-// const User = require("../models/userModel.js");
-// const bcrypt = require("bcryptjs");
-// const jwt = require("jsonwebtoken");
-// const { validationResult } = require("express-validator");
-
-// // Generate JWT Token
-// const generateToken = (id, role) => {
-//   return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "15min" });
-// };
-
-// const generateRefreshToken = (id) => {
-//   return jwt.sign({ id }, process.env.REFERSH_SECRET, { expiresIn: "7d" });
-// };
-
-// const registerUser = async (req, res) => {
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//     return res.status(400).json({ message: errors.array()[0].msg });
-//   }
-
-//   const { email, password, role } = req.body;
-
-//   try {
-//     const userExists = await User.findOne({ email });
-//     if (userExists)
-//       return res.status(400).json({ message: "User already exists" });
-
-//     const hashedPassword = await bcrypt.hash(password, 10);
-//     const user = await User.create({
-//       email,
-//       password: hashedPassword,
-//       role: role || "user",
-//     });
-
-//     res.status(201).json({
-//       user: { id: user._id, email: user.email, role: user.role },
-//       token: generateToken(user._id, user.role),
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-// const loginUser = async (req, res) => {
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//     return res.status(400).json({ message: errors.array()[0].msg });
-//   }
-
-//   const { email, password } = req.body;
-
-//   try {
-//     const user = await User.findOne({ email });
-//     if (!user) return res.status(400).json({ message: "Invalid credentials" });
-
-//     const isMatch = await bcrypt.compare(password, user.password);
-//     if (!isMatch)
-//       return res.status(400).json({ message: "Invalid credentials" });
-
-//     const accessToken = generateToken(user._id, user.role);
-//     const refereshToken = generateRefreshToken(user._id);
-
-//     res.status(200).json({
-//       user: { id: user._id, email: user.email },
-//       token: generateToken(user._id),
-//       accessToken,
-//       refereshToken,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-// module.exports = { loginUser, registerUser };
-
 const User = require("../models/userModel");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
@@ -103,109 +28,190 @@ const transporter = nodemailer.createTransport({
 });
 
 // ✅ User Signup
+// const signup = async (req, res) => {
+//   const errors = validationResult(req);
+//   if (!errors.isEmpty()) {
+//     return res.status(400).json({ errors: errors.array() });
+//   }
+
+//   const { name, email, password } = req.body;
+
+//   try {
+//     let user = await User.findOne({ email });
+//     if (user) return res.status(400).json({ message: "User already exists" });
+
+//     const salt = await bcrypt.genSalt(10);
+//     const hashedPassword = await bcrypt.hash(password, salt);
+
+//     user = new User({ name, email, password: hashedPassword });
+
+//     await user.save();
+
+//     // Generate Tokens
+//     const accessToken = generateAccessToken(user);
+//     const refreshToken = generateRefreshToken(user);
+
+//     if (!accessToken || !refreshToken) {
+//       return res.status(500).json({ message: "Error generating tokens" });
+//     }
+
+//     // Set refresh token in a cookie
+//     // res.cookie("refreshToken", refreshToken, {
+//     //   httpOnly: true,
+//     //   secure: true,
+//     //   sameSite: "Lax",
+//     // });
+//     res.cookie("refreshToken", refreshToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "Strict",
+//       path: "/api/auth/refresh-token",
+//     });
+
+//     res.status(201).json({
+//       message: "User registered successfully",
+//       accessToken,
+//       user: {
+//         id: user._id,
+//         name: user.name,
+//         email: user.email,
+//         role: user.role,
+//       },
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
+
+// controllers/authController.js
+
 const signup = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+    const { name, email, password, role = "user" } = req.body;
 
-  const { name, email, password } = req.body;
+    try {
+        // check if user exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "User already exists" });
+        }
 
-  try {
-    let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ message: "User already exists" });
+        // hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+        const newUser = new User({
+            name,
+            email,
+            password: hashedPassword,
+            role, // ✅ save the role
+        });
 
-    user = new User({ name, email, password: hashedPassword });
+        await newUser.save();
 
-    await user.save();
+        const accessToken = generateAccessToken(newUser); // generate JWT
 
-    // Generate Tokens
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-
-    if (!accessToken || !refreshToken) {
-      return res.status(500).json({ message: "Error generating tokens" });
+        res.status(201).json({
+            user: {
+                _id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role,
+            },
+            accessToken,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Something went wrong" });
     }
-
-    // Set refresh token in a cookie
-    // res.cookie("refreshToken", refreshToken, {
-    //   httpOnly: true,
-    //   secure: true,
-    //   sameSite: "Lax",
-    // });
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-      path: "/api/auth/refresh-token",
-    });
-
-    res.status(201).json({
-      message: "User registered successfully",
-      accessToken,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
 };
 
-// ✅ User Login
-const login = async (req, res) => {
-  const { email, password } = req.body;
 
-  if (!email || !password) {
-    return res
-      .status(400)
-      .json({ message: "Email and password are required." });
-  }
+
+// ✅ User Login
+// const login = async (req, res) => {
+//   const { email, password } = req.body;
+
+//   if (!email || !password) {
+//     return res
+//       .status(400)
+//       .json({ message: "Email and password are required." });
+//   }
+
+//   try {
+//     const user = await User.findOne({ email });
+
+//     if (!user) {
+//       return res.status(400).json({ message: "Invalid email or password." });
+//     }
+
+//     const isMatch = await bcrypt.compare(String(password), user.password);
+//     console.log(isMatch);
+
+//     if (!isMatch) {
+//       return res.status(400).json({ message: "Invalid email or password." });
+//     }
+//     // Generate Tokens
+//     const accessToken = generateAccessToken(user);
+//     const refreshToken = generateRefreshToken(user);
+
+//     // Set refresh token in cookie
+//     res.cookie("refreshToken", refreshToken, {
+//       httpOnly: true,
+//       secure: true,
+//       sameSite: "Lax",
+//     });
+
+//     res.json({
+//       message: "Login successful",
+//       accessToken,
+//       user: {
+//         id: user._id,
+//         name: user.name,
+//         email: user.email,
+//         role: user.role,
+//       },
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Internal server error." });
+//   }
+// };
+
+const login = async (req, res) => {
+  const { email, password, role } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email, role }); // Match role too
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid email or password." });
+      return res
+        .status(400)
+        .json({ message: "User not found or role mismatch" });
     }
 
-    const isMatch = await bcrypt.compare(String(password), user.password);
-    console.log(isMatch);
-
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password." });
+      return res.status(400).json({ message: "Invalid password" });
     }
-    // Generate Tokens
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
 
-    // Set refresh token in cookie
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "Lax",
-    });
+    const accessToken = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
     res.json({
-      message: "Login successful",
       accessToken,
       user: {
-        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
       },
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error." });
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error during login" });
   }
 };
 
