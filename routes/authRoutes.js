@@ -8,6 +8,7 @@ const {
   resetPassword,
   refreshToken,
 } = require("../controllers/authController");
+const { protect } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
@@ -31,7 +32,7 @@ router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
 
 // ✅ Reset Password
-router.post("/reset-password/:token", resetPassword);
+router.post("/reset-password", resetPassword);
 
 // ✅ Refresh Token
 router.post("/refresh-token", refreshToken);

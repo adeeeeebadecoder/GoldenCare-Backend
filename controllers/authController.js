@@ -84,48 +84,48 @@ const transporter = nodemailer.createTransport({
 //   }
 // };
 
-
 // controllers/authController.js
 
 const signup = async (req, res) => {
-    const { name, email, password, role = "user" } = req.body;
+  const { name, email, password, role } = req.body;
+  console.log(req.body);
 
-    try {
-        // check if user exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: "User already exists" });
-        }
-
-        // hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newUser = new User({
-            name,
-            email,
-            password: hashedPassword,
-            role, // ✅ save the role
-        });
-
-        await newUser.save();
-
-        const accessToken = generateAccessToken(newUser); // generate JWT
-
-        res.status(201).json({
-            user: {
-                _id: newUser._id,
-                name: newUser.name,
-                email: newUser.email,
-                role: newUser.role,
-            },
-            accessToken,
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Something went wrong" });
+  try {
+    // check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
     }
+
+    // hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+    });
+
+    await newUser.save();
+
+    const accessToken = generateAccessToken(newUser); // generate JWT
+
+    res.status(201).json({
+      user: {
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+      },
+      accessToken,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ message: "Something went wrong" });
+  }
 };
-
-
 
 // ✅ User Login
 // const login = async (req, res) => {
@@ -266,27 +266,34 @@ const forgotPassword = async (req, res) => {
 
 // ✅ Reset Password
 const resetPassword = async (req, res) => {
-  const { token } = req.params;
-  const { password } = req.body;
+  const { newPassword, token } = req.body;
+  console.log(token);
+
+  console.log(newPassword);
 
   try {
     const user = await User.findOne({
       resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() },
+      // resetPasswordExpires: { $gt: Date.now() },
     });
+    console.log(user);
 
     if (!user)
       return res.status(400).json({ message: "Invalid or expired token" });
 
+    if (!newPassword) {
+      return res.status(400).json({ message: "Password is required" });
+    }
+
     // Hash new password
-    user.password = await bcrypt.hash(password, 10);
+    user.password = await bcrypt.hash(newPassword, 10);
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
 
     await user.save();
     res.json({ message: "Password reset successful" });
   } catch (error) {
-    console.error(error);
+    // console.log(error);
     res.status(500).json({ message: "Server error" });
   }
 };
