@@ -10,7 +10,8 @@ const doctorRoutes = require("./routes/doctorRoutes");
 const reminderRoutes = require("./routes/reminderRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes.js");
 const adminRoutes = require("./routes/adminRoutes.js");
-const userRoute =require("./routes/userRoutes.js")
+const userRoute = require("./routes/userRoutes.js");
+const contactRoutes = require("./routes/contactRoutes");
 
 connectDB();
 
@@ -37,6 +38,7 @@ app.use("/api/reminders", reminderRoutes);
 app.use("/ap/dashboard", dashboardRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRoute);
+app.use("/api/contact", contactRoutes);
 
 app.get("/api/health", (req, res) => res.send("API is running 🚀"));
 

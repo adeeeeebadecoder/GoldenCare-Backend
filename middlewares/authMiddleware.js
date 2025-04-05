@@ -71,6 +71,8 @@ const protect = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
+    console.log(error);
+    
     res.status(401).json({ message: "Invalid token" });
   }
 };
@@ -82,4 +84,30 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-module.exports = { protect, adminOnly, verifyAdmin, verifyToken, verifyRole };
+const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res
+        .status(403)
+        .json({ message: "Access Denied: Insufficient permissions" });
+    }
+    next();
+  };
+};
+
+const authenticateUser = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+  next();
+};
+
+module.exports = {
+  protect,
+  adminOnly,
+  verifyAdmin,
+  verifyToken,
+  verifyRole,
+  authorizeRoles,
+  authenticateUser,
+};

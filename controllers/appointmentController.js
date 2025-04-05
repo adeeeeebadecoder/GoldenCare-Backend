@@ -38,7 +38,7 @@ const createAppointment = async (req, res) => {
 
   const doctor = await Doctor.findOne({ name: doctorName });
 
-  const createAppointment = new Appointment({
+  const newAppointment = new Appointment({
     patientName,
     doctorName,
     appointmentDate,
@@ -48,15 +48,16 @@ const createAppointment = async (req, res) => {
     doctorId: doctor._id,
   });
 
-  await createAppointment.save();
-  res.status(201).json(createAppointment);
+  await newAppointment.save();
+
+  res.status(201).json(newAppointment);
 };
 
 // Get all appointments
 const getAppointments = async (req, res) => {
   try {
-    const appointments = await Appointment.find();
-    res.json(appointments);
+    const appointments = await Appointment.find({});
+    res.status(200).json(appointments);
   } catch (error) {
     res.status(500).json({ error: "Error fetching appointments" });
   }

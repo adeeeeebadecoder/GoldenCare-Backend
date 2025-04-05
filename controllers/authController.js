@@ -8,7 +8,7 @@ const { validationResult } = require("express-validator");
 // Function to generate JWT Token
 const generateAccessToken = (user) => {
   return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: "15min",
+    expiresIn: "5days",
   });
 };
 

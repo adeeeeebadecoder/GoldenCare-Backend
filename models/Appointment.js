@@ -50,7 +50,7 @@ const appointmentSchema = new mongoose.Schema({
     default: "Pending",
   },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  doctorId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // optional if needed
+  doctorId: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor" }, // optional if needed
 });
 
 module.exports = mongoose.model("Appointment", appointmentSchema);
