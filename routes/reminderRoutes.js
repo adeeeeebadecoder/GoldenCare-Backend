@@ -41,16 +41,18 @@
 // module.exports = router;
 
 const express = require("express");
+const {protect}=require("../middlewares/authMiddleware")
+
+const router = express.Router();
 const {
   getReminders,
   createReminder,
   toggleReminderStatus,
   deleteReminder,
 } = require("../controllers/reminderController");
-const router = express.Router();
 
 router.get("/", getReminders);
-router.post("/", createReminder);
+router.post("/",protect, createReminder);
 router.put("/:id/toggle", toggleReminderStatus);
 router.delete("/:id", deleteReminder);
 
