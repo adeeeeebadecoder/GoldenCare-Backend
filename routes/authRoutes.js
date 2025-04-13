@@ -36,5 +36,6 @@ router.post("/reset-password", resetPassword);
 
 // ✅ Refresh Token
 router.post("/refresh-token", refreshToken);
+router.get("/refresh-token", refreshToken);
 
 module.exports = router;

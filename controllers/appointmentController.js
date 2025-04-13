@@ -48,6 +48,8 @@ const createAppointment = async (req, res) => {
     doctorId: doctor._id,
   });
 
+  console.log(newAppointment);
+
   await newAppointment.save();
 
   res.status(201).json(newAppointment);
